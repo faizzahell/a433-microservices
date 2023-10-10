@@ -1,0 +1,28 @@
+name: CI for karsajobs  # Inisialisasi nama untuk CI workflow
+
+on:
+  push:
+    branches:
+      - karsajobs  # Melakukan trigger terhadap workflow untuk 'karsajobs' branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Menggunakan sistem operasi Ubuntu:latest dalam mengeksekusinya
+
+    steps:
+      - name: Checkout Repository  # Instruksi checkout Git repository
+        uses: actions/checkout@v2
+
+      - name: Install and Run Hadolint  # Install dan menjalankan Hadolint untuk eksekusi Dockerfile
+        run: |
+          wget -O hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+          chmod +x hadolint
+          ./hadolint Dockerfile
+
+      - name: Run Unit Tests  # Menjalankan unit tests code
+        run: go test -v -short --count=1 $(go list ./...)
+
+      - name: Build and Push Docker Image  # Melakukan build dan push Docker image
+        run: |
+          export GH_PACKAGES_TOKEN=${{ secrets.GH_PACKAGES_TOKEN }}
+          bash build_push_image_karsajobs.sh
